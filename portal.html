@@ -1093,14 +1093,15 @@ function buildMC(t, item, body){
 /* ---------- Re-order paragraphs ---------- */
 function buildRO(t, item, body){
   let order = shuffle(item.items.map((_,i)=>i), S.idx + 7); if (order.every((v,i)=>v===i)) order.reverse();
-  const draw = (locked, res) => { $("#roList").innerHTML = order.map((k,pos) => `<div class="ro-item ${res?res[pos]:''}"><span class="t">${esc(item.items[k])}</span>${locked?"":`<button class="btn ghost sm" type="button" data-up="${pos}" ${pos===0?"disabled":""} aria-label="Move up">↑</button><button class="btn ghost sm" type="button" data-dn="${pos}" ${pos===order.length-1?"disabled":""} aria-label="Move down">↓</button>`}</div>`).join("");
+  const labels = {}; order.forEach((k, pos) => {labels[k] = String.fromCharCode(65+pos);});
+  const draw = (locked, res) => { $("#roList").innerHTML = order.map((k,pos) => `<div class="ro-item ${res?res[pos]:''}"><span class+"badge b-info">${labels[k]} </span><span class="t">$ {esc(item.items[k])}</span>${locked?"":`<button class="btn ghost sm" type="button" data-up="${pos}" ${pos===0?"disabled":""} aria-label="Move up">↑</button><button class="btn ghost sm" type="button" data-dn="${pos}" ${pos===order.length-1?"disabled":""} aria-label="Move down">↓</button>`}</div>`).join("");
     $$("[data-up]").forEach(b => b.addEventListener("click", () => { const p = +b.dataset.up; [order[p-1],order[p]] = [order[p],order[p-1]]; draw(); }));
     $$("[data-dn]").forEach(b => b.addEventListener("click", () => { const p = +b.dataset.dn; [order[p+1],order[p]] = [order[p],order[p+1]]; draw(); })); };
   body.innerHTML = `<div id="roList"></div><button class="btn" type="button" id="chk" style="margin-block-start:10px">Submit answer</button>`; draw();
   $("#chk").addEventListener("click", async () => { let pairs = 0; for (let i=0;i<order.length-1;i++) if (order[i+1] === order[i]+1) pairs++;
     draw(true, order.map((k,pos) => k===pos ? "right" : "wrong"));
-    const auto = {parts:[], total:pairs, max:order.length-1, note:"1 point for each correctly ordered adjacent pair. Correct order: " + item.items.map((_,i)=>String.fromCharCode(65+i)).join(" → ")};
-    const att = await saveAttempt(t, {order: order.map(k=>String.fromCharCode(65+k))}, auto); $("#chk").disabled = true; $("#qresult").innerHTML = scoreHTML(auto, retryBtn()); bindRetry(t, att); });
+    const auto = {parts:[], total:pairs, max:order.length-1, note:"1 point for each correctly ordered adjacent pair. Correct order: " + item.items.map((_,i)=>labels[i]).join(" → ")};
+    const att = await saveAttempt(t, {order: order.map(k=>labels[k])}, auto); $("#chk").disabled = true; $("#qresult").innerHTML = scoreHTML(auto, retryBtn()); bindRetry(t, att); });
 }
 /* ---------- Reading FIB (drag and drop) ---------- */
 function buildDND(t, item, body){
