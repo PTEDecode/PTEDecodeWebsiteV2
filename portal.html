@@ -1093,7 +1093,7 @@ function buildMC(t, item, body){
 /* ---------- Re-order paragraphs ---------- */
 function buildRO(t, item, body){
   let order = shuffle(item.items.map((_,i)=>i), S.idx + 7); if (order.every((v,i)=>v===i)) order.reverse();
-  const draw = (locked, res) => { $("#roList").innerHTML = order.map((k,pos) => `<div class="ro-item ${res?res[pos]:''}"><span class="badge b-info">${String.fromCharCode(65+k)}</span><span class="t">${esc(item.items[k])}</span>${locked?"":`<button class="btn ghost sm" type="button" data-up="${pos}" ${pos===0?"disabled":""} aria-label="Move up">↑</button><button class="btn ghost sm" type="button" data-dn="${pos}" ${pos===order.length-1?"disabled":""} aria-label="Move down">↓</button>`}</div>`).join("");
+  const draw = (locked, res) => { $("#roList").innerHTML = order.map((k,pos) => `<div class="ro-item ${res?res[pos]:''}"><span class="t">${esc(item.items[k])}</span>${locked?"":`<button class="btn ghost sm" type="button" data-up="${pos}" ${pos===0?"disabled":""} aria-label="Move up">↑</button><button class="btn ghost sm" type="button" data-dn="${pos}" ${pos===order.length-1?"disabled":""} aria-label="Move down">↓</button>`}</div>`).join("");
     $$("[data-up]").forEach(b => b.addEventListener("click", () => { const p = +b.dataset.up; [order[p-1],order[p]] = [order[p],order[p-1]]; draw(); }));
     $$("[data-dn]").forEach(b => b.addEventListener("click", () => { const p = +b.dataset.dn; [order[p+1],order[p]] = [order[p],order[p+1]]; draw(); })); };
   body.innerHTML = `<div id="roList"></div><button class="btn" type="button" id="chk" style="margin-block-start:10px">Submit answer</button>`; draw();
