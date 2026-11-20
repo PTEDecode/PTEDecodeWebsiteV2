@@ -1108,6 +1108,8 @@ function buildRO(t, item, body){
 function buildDND(t, item, body){
   const pool = shuffle(item.a.concat(item.extra), S.idx + 3); const fill = {}; let selected = null;
   body.innerHTML = `<div class="passage" id="dndText">${esc(item.text).replace(/\[\[(\d+)\]\]/g, (_, n) => `<span class="drop" data-d="${n}" tabindex="0">&nbsp;</span>`)}</div><div class="chips" id="pool"></div><button class="btn" type="button" id="chk">Submit answer</button>`;
+  body.innerHTML += `<details style="margin-top:14px;"><summary class="btn ghost" style="cursor:pointer;display:inline-block;">Show Correct Answers</summary><div class="model" style="margin-top:10px;"><b>Correct Answers:</b> ${item.a.map(a=>esc(a)).join(", ")}</div></details>`;
+  body.querySelector("details").addEventListener("toggle", function() { this.querySelector("summary").textContent = this.open ? "Hide Correct Answers" : "Show Correct Answers"; });
   const drawPool = () => { const used = Object.values(fill); $("#pool").innerHTML = pool.filter(w => !used.includes(w)).map(w => `<span class="chip ${selected===w?'sel':''}" draggable="true" data-w="${esc(w)}">${esc(w)}</span>`).join("");
     $$(".chip").forEach(c => { c.addEventListener("dragstart", e => e.dataTransfer.setData("text/plain", c.dataset.w)); c.addEventListener("click", () => { selected = selected === c.dataset.w ? null : c.dataset.w; drawPool(); }); }); };
   const place = (d, w) => { for (const k in fill) if (fill[k] === w) delete fill[k]; fill[d.dataset.d] = w; selected = null; drawDrops(); drawPool(); };
