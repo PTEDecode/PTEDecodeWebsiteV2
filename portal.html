@@ -1021,7 +1021,7 @@ async function runSpeaking(t, item){
   const att = await saveAttempt(t, {transcript: transcript.trim(), seconds: Math.round(secs), audio: blob}, auto);
   status.textContent = "✓ Response saved."; live.textContent = "";
   const url = blob ? URL.createObjectURL(blob) : null;
-  const ref = t.id==="ra"||t.id==="rs" ? `<div class="model"><b>Text:</b> ${esc(item.text)}</div>` : t.id==="asq" ? `<div class="model"><b>Question:</b> ${esc(item.q)}<br><b>Answer:</b> ${esc(item.a[0])}</div>` : item.model ? `<div class="model" style="white-space:pre-wrap"><b>Sample answer:</b> ${esc(item.model)}</div>` : "";
+  const ref = t.id==="ra"||t.id==="rs" ? `<details class="model"><summary style="cursor:pointer;font-weight:bold;color:#17365D;"> Show Correct Answer </summary> <div style="margin-top:10px;"> ${esc(item.text)} </div></details>` : t.id==="asq" ? `<div class="model"><b>Question:</b> ${esc(item.q)}<br><b>Answer:</b> ${esc(item.a[0])}</div>` : item.model ? `<div class="model" style="white-space:pre-wrap"><b>Sample answer:</b> ${esc(item.model)}</div>` : "";
   const scr = (t.id === "rl" || t.id === "sgd") && item.script ? `<details style="margin-block-start:8px"><summary class="small">Show transcript of the ${t.id==="rl"?"lecture":"discussion"}</summary><div class="small" style="white-space:pre-wrap">${esc(item.script)}</div></details>` : "";
   $("#qresult").innerHTML = scoreHTML(auto, `${url?`<div style="margin-block-start:10px"><audio controls src="${url}"></audio></div>`:""}${ref}${scr}${retryBtn()}`);
   bindRetry(t, att);
