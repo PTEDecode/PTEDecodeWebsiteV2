@@ -1069,7 +1069,8 @@ const lis = t => t.sec === "listening";
 /* ---------- Reading & Writing FIB (drop-down) ---------- */
 function buildRWFIB(t, item, body){
   const html = esc(item.text).replace(/\[\[(\d+)\]\]/g, (_, n) => `<select class="blank" data-b="${n}"><option value=""></option>${item.blanks[n].o.map(o=>`<option>${esc(o)}</option>`).join("")}</select>`);
-body.innerHTML = `<div class="passage">${html}</div><details style="margin-top:14px;"><summary class="btn ghost" style="cursor:pointer;display:inline-block;">Show Correct Answers</summary><div class="model" style="margin-top:10px;"><b>Correct Answers:</b> ${item.blanks.map((b,i)=>`${i+1}. ${esc(b.a)}`).join("<br>")}</div></details><button class="btn" type="button" id="chk" style="margin-block-start:14px">Submit answer</button>`;
+body.innerHTML = `<div class="passage">${html}</div><details style="margin-top:14px;"><summary class="btn ghost" style="cursor:pointer;display:inline-block;">Show Correct Answers</summary><div class="model" style="margin-top:10px;"><b>Correct Answers:</b> ${item.blanks.map(b=>esc(b.a)).join(", ")}</div></details><button class="btn" type="button" id="chk" style="margin-block-start:14px">Submit answer</button>`;
+  body.querySelector("details").addEventListener("toggle", function() { this.querySelector("summary").textContent = this.open ? "Hide Correct Answers" : "Show Correct Answers"; });
   $("#chk").addEventListener("click", async () => { const sels = $$("select.blank"); let got = 0; const ans = [];
     sels.forEach(s => { const b = item.blanks[s.dataset.b], ok = s.value === b.a; ans.push(s.value); if (ok) got++; s.classList.add(ok?"right":"wrong"); s.disabled = true; });
     const auto = {parts:[], total:got, max:item.blanks.length, note:"1 point per correct blank."};
