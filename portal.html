@@ -1057,7 +1057,7 @@ function buildWrite(t, item, body){
 
 /* ---------- Audio player for listening items ---------- */
 function audioBar(item, text){
- return `<div class="row" style="margin-block-end:12px"> <button class="btn" type="button" id="playA">▶️ Play recording</button> <span class="small muted" id="playInfo">In the exam you hear it once.</span> </div>  <div id="audioProgressContainer" style="margin-bottom:14px;display:none;"> <div class="bar"><i id="audioProgress"></i></div> <div id="audioTime" class="small muted" style="margin-top:5px;">00:00 / 00:00</div> </div>`;
+ return `<div class="row" style="margin-block-end:12px"> <button class="btn" type="button" id="playA">▶ Play recording</button> <span class="small muted" id="playInfo">In the exam you hear it once.</span> </div>  <div id="audioProgressContainer" style="margin-bottom:14px;display:none;"> <div class="bar"><i id="audioProgress"></i></div> <div id="audioTime" class="small muted" style="margin-top:5px;">00:00 / 00:00</div> </div>`;
 }
 function bindAudio(text, afterBeep){
   const sess = {cancelled:false, cancel(){ this.cancelled = true; try { speechSynthesis.cancel(); } catch(e){} }}; ACTIVE = sess; let plays = 0;
