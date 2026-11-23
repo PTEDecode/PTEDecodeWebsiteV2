@@ -1050,7 +1050,7 @@ function buildWrite(t, item, body){
   if (t.id === "swt") html += `<h3>${esc(item.title)}</h3><div class="passage">${esc(item.text)}</div>`;
   if (t.id === "essay") html += `<div class="passage">${esc(item.prompt)}</div>`;
   if (t.id === "we") html += `<div class="passage">${esc(item.situation)}<ul style="margin-block:8px 0">${item.points.map(p=>`<li>${esc(p.label)}</li>`).join("")}</ul></div>`;
-  if (t.id === "sst") html += `<div class="row"><button class="btn" type="button" id="playA">▶ Play recording</button><span class="small muted" id="playInfo">In the exam you hear it once.</span></div>`;
+  if (t.id === "sst") html += `<div class="row"><button class="btn" type="button" id="playA">▶ Play recording</button><span class="small muted" id="playInfo">In the exam you hear it once.</span></div><div id="audioProgressContainer" style="margin-top:12px;display:none;"><div class="bar"><i id="audioProgress"></i></div><div id="audioTime" class="small muted" style="margin-top:5px;">00:00 / 00:00</div></div>`;
   html += `<div class="row" style="justify-content:space-between;margin-block:14px 6px"><b>Your response</b><span>Time left: <span class="timer" id="wTimer">${t.timing.min}:00</span></span></div>
     <textarea id="wText" spellcheck="false" autocomplete="off" placeholder="Type your answer here…" style="min-block-size:${t.id==='we'?220:t.id==='essay'?320:140}px"></textarea>
     <div class="wc"><span id="wCount">Word count: 0</span><span>Target: ${t.timing.words[0]}–${t.timing.words[1]} words</span></div>
