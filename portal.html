@@ -678,11 +678,27 @@ function speakOne(text, rate, opt={}){
     const cap = setTimeout(() => { try { speechSynthesis.cancel(); } catch(e){} res(false); }, (wordCount(text) * 0.75 / rate + 4) * 1000 / SPEED);
     u.onend = () => { clearTimeout(cap); res(true); }; u.onerror = () => { clearTimeout(cap); res(false); }; speechSynthesis.speak(u); });
 }
+  function startTTSProgress(text, rate) {
+  const bar = document.querySelector("#audioProgress");
+  const time = document.querySelector("#audioTime");
+  const container = document.querySelector("#audioProgressContainer");
+  if (!bar || !time || !container) return () => {};
+  const words = String(text).trim().split(/\s+/).filter(Boolean).length;
+  const duration = Math.max(1, words * 0.45 / rate);
+  const formatTime = s => { s = Math.max(0, Math.floor(s)); return `${String(Math.floor(s / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`; }; container.style.display = "block"; bar.style.width = "0%"; time.textContent = `00:00 / ${formatTime(duration)}`;
+  const start = Date.now();
+  const timer = setInterval(() => {
+  const elapsed = (Date.now() - start) / 1000;
+  const progress = Math.min(99, elapsed / duration * 100); bar.style.width = `${progress}%`; time.textContent = `${formatTime(elapsed)} / ${formatTime(duration)}`;
+  }, 200); return () => { clearInterval(timer); bar.style.width = "100%"; time.textContent = `${formatTime(duration)} / ${formatTime(duration)}`; };
+}
+  
 /* Group-discussion scripts ("Name: text" on each line) are read with a different voice/pitch per speaker. */
 async function speak(text, token){
   if (!("speechSynthesis" in window)) return false;
   speechSynthesis.cancel();
   const rate = parseFloat(localStorage.getItem("pte_rate") || "0.95");
+  const finishTTSProgress = startTTSProgress(text, rate);
   const lines = String(text).split(/\n+/).map(l => l.trim()).filter(Boolean);
   const dialogue = lines.length > 1 && lines.every(l => /^[A-Z][A-Za-z.' ]{0,24}:\s/.test(l));
   const voices = ("speechSynthesis" in window) ? speechSynthesis.getVoices().filter(v => /^en[-_]/i.test(v.lang)) : [];
@@ -691,6 +707,7 @@ async function speak(text, token){
       return {text: l.slice(l.indexOf(":") + 1).trim(), opt:{pitch: pitches[n % 4], voice: voices.length > 1 ? voices[(voices.indexOf(VOICE) + n + voices.length) % voices.length] : null}}; })
     : [{text: String(text), opt:{}}];
   for (const c of chunks) for (const p of c.text.split(/(?<=[.!?])\s+(?=[A-Z])/)) { if (token && token.cancelled) return false; if (p.trim()) await speakOne(p.trim(), rate, c.opt); } // sentence chunks avoid long-utterance cut-offs
+  finishTTSProgress();
   return true;
 }
 let _actx = null;
