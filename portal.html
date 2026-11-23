@@ -998,7 +998,7 @@ async function runSpeaking(t, item){
     const tick = () => { const el = (Date.now()-t0)/1000; status.textContent = label.replace("{s}", Math.max(0, Math.ceil(secs-el))); fill.style.inlineSize = Math.min(100, el/secs*100) + "%"; if (el >= secs) sess.done(); };
     sess.timer = setInterval(tick, 200); tick(); });
   const audioText = t.id === "rs" ? item.text : t.id === "asq" ? item.q : t.id === "rts" ? item.text : (t.id === "rl" || t.id === "sgd") ? item.script : null;
-  if (audioText) { status.textContent = "🔊 Playing audio…"; fill.style.inlineSize = "0%"; await playPrompt(item, audioText, sess); if (sess.cancelled) return; if (!("speechSynthesis" in window)) live.textContent = "Audio is not supported in this browser. Prompt: " + audioText; }
+  if (audioText) { status.textContent = "🔊 Playing audio…"; fill.style.inlineSize = "0%"; await playPrompt(item, audioText, sess); const audioContainer = document.querySelector("#audioProgressContainer"); if (audioContainer) audioContainer.style.display = "none"; if (sess.cancelled) return; if (!("speechSynthesis" in window)) live.textContent = "Audio is not supported in this browser. Prompt: " + audioText; }
   if (t.timing.prep) { skipB.classList.remove("hidden"); skipB.onclick = () => sess.done && sess.done(); await countdown(t.timing.prep, "Recording begins in {s} seconds", false); skipB.classList.add("hidden"); if (sess.cancelled) return; }
   await beep(); if (sess.cancelled) return;
   // start recording + speech recognition
