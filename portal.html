@@ -2482,13 +2482,13 @@ function mxItem(sess, a, i, d){
     setT(null);
     if (g) { tick(() => { const left = mxGroupLeft(a, g); setT(left); if (left <= 0 && it.onTimeUp) it.onTimeUp(); }); setT(mxGroupLeft(a, g)); }
     const instr = `<div class="xm-instr">${esc(t.instr)}</div>`;
-    const audioBox = () => `<div class="xm-box" id="xmAud"><div>Status: <span id="xmAS">Beginning in …</span></div><div class="bar"><i id="xmAB"></i></div><label class="small row" style="gap:6px">Volume <input type="range" id="xmVol" min="0" max="1" step="0.05" value="${VOL}"></label></div>`;
+    const audioBox = () => `<div class="xm-box" id="xmAud"><div>Status: <span id="xmAS">Beginning in …</span></div><div id="audioProgressContainer"><div class="bar"><i id="audioProgress"></i></div><div id="audioTime" class="small muted" style="margin-top:5px;">00:00 / 00:00</div></div><label class="small row" style="gap:6px">Volume <input type="range" id="xmVol" min="0" max="1" step="0.05" value="${VOL}"></label></div>`;
     const bindVol = () => { const v = $("#xmVol"); if (v) v.addEventListener("input", e => { VOL = +e.target.value; localStorage.setItem("pte_vol", VOL); }); };
     const tok = {cancelled:false, cancel(){ this.cancelled = true; try { speechSynthesis.cancel(); } catch(e){} }};
     it.stops.push(() => tok.cancel());
-    const playAudio = async (lead) => { const st = $("#xmAS"), bar = $("#xmAB"); const t0 = Date.now(), wait = lead * 1000 / SPEED;
+    const playAudio = async (lead) => { const st = $("#xmAS"), bar = $("#audioProgress"); const t0 = Date.now(), wait = lead * 1000 / SPEED;
       await new Promise(r => { const x = tick(() => { const el = Date.now() - t0; if (st) st.textContent = `Beginning in ${Math.max(0, Math.ceil((wait - el) / 1000))} seconds`; if (el >= wait) { clearInterval(x); r(); } }, 100); });
-      if (it.finished) return; if (st) st.textContent = "Playing"; if (bar) bar.style.inlineSize = "50%";
+      if (it.finished) return; if (st) st.textContent = "Playing"; if (bar) bar.style.inlineSize = "0%";
       await playPrompt(item, audioTextOf(d.t, item) || "", tok); if (it.finished) return;
       if (d.t === "smw") await beep(1000, 600);
       if (st) st.textContent = "Completed"; if (bar) bar.style.inlineSize = "100%"; };
