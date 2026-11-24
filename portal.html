@@ -2463,7 +2463,7 @@ async function mxIntro(sess, a){
 function mxPartIntro(sess, part, a){
   const ac = a.exam === "Academic";
   const info = {1:`<p>This part of the test assesses speaking and writing. It starts with an unscored Personal Introduction.</p><p>Each question has its own timer: speaking questions show a countdown before recording and the recording time; writing questions show the time remaining in the top-right corner.</p>`,
-    2:`<p>This part of the test assesses reading.</p><p><b>Time allowed: 30 minutes</b> for all the reading questions. The timer in the top-right corner shows the time left for the whole part.</p>`,
+    2:`<p>This part of the test assesses reading.</p><p><b>Time allowed: ${GROUP_MIN.R[a.exam]} minutes</b> for all the reading questions. The timer in the top-right corner shows the time left for the whole part.</p>`,
     3:`<p>This part of the test assesses listening. Each recording plays only once.</p><p>Summarize Spoken Text has its own timer (${ac ? 10 : 8} minutes per question). The other listening questions share <b>${GROUP_MIN.L[a.exam]} minutes</b>, shown in the top-right corner.</p>`}[part];
   return mxScreen(sess, `<h2>${esc(PART_NAMES[part])}</h2>${info}<p>Click <b>Next</b> to begin.</p>`);
 }
@@ -2518,7 +2518,7 @@ function mxItem(sess, a, i, d){
       (async () => {
         if (hasAudio) { await playAudio(3); if (it.finished) return; }
         phase = "prep";
-        const prep = d.t === "rts" ? 20 : (t.timing.prep || 0), rec = t.timing.rec, rs = $("#xmRS"), rb = $("#xmRB");
+        const prep = d.t === "rts" ? 10 : (t.timing.prep || 0), rec = t.timing.rec, rs = $("#xmRS"), rb = $("#xmRB");
         if (prep) { const t0 = Date.now(), w = prep * 1000 / SPEED;
           await new Promise(r => { const x = tick(() => { const el = Date.now() - t0; if (rs) rs.textContent = `Beginning in ${Math.max(0, Math.ceil((w - el) / 1000 * SPEED))} seconds`; setT((w - el) / 1000 * SPEED + rec); if (el >= w) { clearInterval(x); r(); } }, 100); }); }
         if (it.finished) return;
@@ -2553,7 +2553,7 @@ function mxItem(sess, a, i, d){
       let lastPut = 0; const putDraft = () => { lastPut = Date.now(); DB.put("mockp", {id:a.id, idx:i, start, draft:ta.value}).catch(()=>{}); };
       putDraft();
       ta.addEventListener("input", () => { $("#xmWC").textContent = wordCount(ta.value); if (Date.now() - lastPut > 1500) putDraft(); });
-      { let clipboard = ""; const tools = document.createElement("div"); tools.className = "row"; tools.style.cssText = "gap:8px;margin:10px 0;"; ["Cut", "Copy", "Paste"].forEach(action => { const btn = document.createElement("button"); btn.type = "button"; btn.className = "btn ghost sm"; btn.textContent = action; btn.addEventListener("mousedown", e => e.preventDefault()); btn.addEventListener("click", () => { if (it.finished || ta.readOnly || ta.disabled) return; const start = ta.selectionStart; const end = ta.selectionEnd; if (action === "Copy" || action === "Cut") { if (start === end) return; clipboard = ta.value.slice(start, end); if (action === "Cut") { ta.setRangeText("", start, end, "end"); } } if (action === "Paste") { if (!clipboard) return; ta.setRangeText(clipboard, start, end, "end"); } ta.focus(); ta.dispatchEvent(new Event("input", { bubbles: true })); putDraft(); }); tools.appendChild(btn); }); ta.after(tools); }
+     { if (MX.clipboardAttempt !== a.id) { MX.clipboardAttempt = a.id; MX.clipboard = ""; } const tools = document.createElement("div"); tools.className = "row"; tools.style.cssText = "display:flex;justify-content:space-between;width:100%;margin:10px 0;"; ["Cut", "Copy", "Paste"].forEach(action => { const btn = document.createElement("button"); btn.type = "button"; btn.className = "btn ghost sm"; btn.textContent = action; btn.addEventListener("mousedown", e => e.preventDefault()); btn.addEventListener("click", () => { if (it.finished || ta.readOnly || ta.disabled) return; const start = ta.selectionStart; const end = ta.selectionEnd; if (action === "Copy" || action === "Cut") { if (start === end) return; MX.clipboard = ta.value.slice(start, end); if (action === "Cut") { ta.setRangeText("", start, end, "end"); } } if (action === "Paste") { if (!MX.clipboard) return; ta.setRangeText(MX.clipboard, start, end, "end"); } ta.focus(); ta.dispatchEvent(new Event("input", { bubbles: true })); putDraft(); }); tools.appendChild(btn); }); ta.after(tools);}
       const submit = () => { putDraft(); const text = ta.value; finish({response:{kind:"write", text}, auto: text.trim() ? scoreWriting(t, item, text) : null}); };
       tick(() => { const left = dur - (Date.now() - start) / 1000; setT(left * SPEED); if (left <= 0) submit(); });
       setT(dur * SPEED - (Date.now() - start) / 1000 * SPEED);
