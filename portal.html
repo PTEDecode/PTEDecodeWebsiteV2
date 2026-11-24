@@ -266,8 +266,8 @@ const TASK_DEFS = [
    timing:{prep:25, rec:40, showImage:true}, exam:"3–4 items · 25 s prep · 40 s to speak",
    tip:"Use a simple structure: (1) what the image shows, (2) the highest and lowest values or first and last steps, (3) one or two other details, (4) a short conclusion. Speak for most of the 40 seconds without long pauses."},
   {id:"rts", sec:"speaking", name:"Respond to a Situation", ai:true, kind:"speak",
-   instr:"Listen to and read a description of a situation. You will have 20 seconds to think about your answer. Then you will hear a beep. You will have 40 seconds to answer the question. Please answer as completely as you can.",
-   timing:{prep:20, rec:40, audio:true, showText:true}, exam:"2–4 items · 20 s prep · 40 s to speak",
+   instr:"Listen to and read a description of a situation. You will have 10 seconds to think about your answer. Then you will hear a beep. You will have 40 seconds to answer the question. Please answer as completely as you can.",
+   timing:{prep:10, rec:40, audio:true, showText:true}, exam:"2–4 items · 10 s prep · 40 s to speak",
    tip:"Decide on the right tone (polite and formal for a manager or customer service, friendly for a neighbour). Greet the person, explain the problem or reason, suggest a solution, and close politely. Cover every part of the situation."},
   {id:"asq", sec:"speaking", name:"Answer Short Question", ai:true, kind:"speak",
    instr:"You will hear a question. Please give a simple and short answer. Often just one or a few words is enough.",
@@ -347,7 +347,7 @@ const EXAM_OVERRIDES = {
       tip:"Write ONE sentence only, with a single full stop at the end. Join the main idea and two or three key points with words such as while, although, which, and therefore."},
     sst: {instr:"You will hear a short lecture. Write a summary for a fellow student who was not present at the lecture. You should write 50–70 words. You have 10 minutes to finish this task. Your response will be judged on the quality of your writing and on how well your response presents the key points presented in the lecture.",
       timing:{min:10, words:[50,70], audio:true}, exam:"1–2 items · 10 minutes · 50–70 words"},
-    rts: {exam:"1–2 items · 20 s prep · 40 s to speak"},
+    rts: {exam:"1–2 items · 10 s prep · 40 s to speak"},
     rs: {exam:"10–12 items · listen once · ~15 s to answer"}
   },
   Core: {}
@@ -2033,7 +2033,7 @@ async function renderTeachers(p){
    and stores the draw with the attempt, so a refresh resumes with the same questions.
    ===================================================================== */
 const PART_NAMES = {1:"Part 1: Speaking and Writing", 2:"Part 2: Reading", 3:"Part 3: Listening"};
-const GROUP_MIN = {R:{Core:30, Academic:30}, L:{Core:25, Academic:30}};
+const GROUP_MIN = {R:{Core:22, Academic:22}, L:{Core:23, Academic:23}};
 const groupOf = d => d.p === 2 ? "R" : (d.p === 3 && d.t !== "sst") ? "L" : null;
 const PI_TASK = {id:"pi", sec:"speaking", name:"Personal Introduction", ai:false, kind:"speak", timing:{prep:25, rec:30},
   instr:"Read the prompt below. In 25 seconds, you must reply in your own words, as naturally and clearly as possible. You have 30 seconds to record your response. Your response is not scored; it is sent to your teacher with your test."};
@@ -2553,6 +2553,7 @@ function mxItem(sess, a, i, d){
       let lastPut = 0; const putDraft = () => { lastPut = Date.now(); DB.put("mockp", {id:a.id, idx:i, start, draft:ta.value}).catch(()=>{}); };
       putDraft();
       ta.addEventListener("input", () => { $("#xmWC").textContent = wordCount(ta.value); if (Date.now() - lastPut > 1500) putDraft(); });
+      { let clipboard = ""; const tools = document.createElement("div"); tools.className = "row"; tools.style.cssText = "gap:8px;margin:10px 0;"; ["Cut", "Copy", "Paste"].forEach(action => { const btn = document.createElement("button"); btn.type = "button"; btn.className = "btn ghost sm"; btn.textContent = action; btn.addEventListener("mousedown", e => e.preventDefault()); btn.addEventListener("click", () => { if (it.finished || ta.readOnly || ta.disabled) return; const start = ta.selectionStart; const end = ta.selectionEnd; if (action === "Copy" || action === "Cut") { if (start === end) return; clipboard = ta.value.slice(start, end); if (action === "Cut") { ta.setRangeText("", start, end, "end"); } } if (action === "Paste") { if (!clipboard) return; ta.setRangeText(clipboard, start, end, "end"); } ta.focus(); ta.dispatchEvent(new Event("input", { bubbles: true })); putDraft(); }); tools.appendChild(btn); }); ta.after(tools); }
       const submit = () => { putDraft(); const text = ta.value; finish({response:{kind:"write", text}, auto: text.trim() ? scoreWriting(t, item, text) : null}); };
       tick(() => { const left = dur - (Date.now() - start) / 1000; setT(left * SPEED); if (left <= 0) submit(); });
       setT(dur * SPEED - (Date.now() - start) / 1000 * SPEED);
