@@ -1110,16 +1110,17 @@ function buildMC(t, item, body){
 }
 /* ---------- Re-order paragraphs ---------- */
 function buildRO(t, item, body){
-  let order = shuffle(item.items.map((_,i)=>i), S.idx + 7); if (order.every((v,i)=>v===i)) order.reverse();
-  const labels = {}; order.forEach((k, pos) => {labels[k] = String.fromCharCode(65+pos);});
-  const draw = (locked, res) => { $("#roList").innerHTML = order.map((k,pos) => `<div class="ro-item ${res?res[pos]:''}"><span class+"badge b-info">${labels[k]} </span><span class="t">${esc(item.items[k])}</span>${locked?"":`<button class="btn ghost sm" type="button" data-up="${pos}" ${pos===0?"disabled":""} aria-label="Move up">↑</button><button class="btn ghost sm" type="button" data-dn="${pos}" ${pos===order.length-1?"disabled":""} aria-label="Move down">↓</button>`}</div>`).join("");
-    $$("[data-up]").forEach(b => b.addEventListener("click", () => { const p = +b.dataset.up; [order[p-1],order[p]] = [order[p],order[p-1]]; draw(); }));
-    $$("[data-dn]").forEach(b => b.addEventListener("click", () => { const p = +b.dataset.dn; [order[p+1],order[p]] = [order[p],order[p+1]]; draw(); })); };
-  body.innerHTML = `<div id="roList"></div><button class="btn" type="button" id="chk" style="margin-block-start:10px">Submit answer</button>`; draw();
-  $("#chk").addEventListener("click", async () => { let pairs = 0; for (let i=0;i<order.length-1;i++) if (order[i+1] === order[i]+1) pairs++;
-    draw(true, order.map((k,pos) => k===pos ? "right" : "wrong"));
-    const auto = {parts:[], total:pairs, max:order.length-1, note:"1 point for each correctly ordered adjacent pair. Correct order: " + item.items.map((_,i)=>labels[i]).join(" → ")};
-    const att = await saveAttempt(t, {order: order.map(k=>labels[k])}, auto); $("#chk").disabled = true; $("#qresult").innerHTML = scoreHTML(auto, retryBtn()); bindRetry(t, att); });
+  let source = shuffle(item.items.map((_,i)=>i), S.idx+7), order = []; if(source.every((v,i)=>v===i)) source.reverse();
+  const labels = {}; source.forEach((k,pos)=>{labels[k]=String.fromCharCode(65+pos);});
+  const draw = (locked=false,res=[]) => { $("#roList").innerHTML = [source,order].map((arr,j)=>`<div><b>${j?"Target":"Source"}</b><div data-panel="${j}" style="border:1px solid #aab4c0;border-radius:8px;padding:10px;min-height:300px;margin-top:8px">${arr.map((k,pos)=>`<div class="ro-item ${j?res[pos]||"":""}" draggable="${!locked}" data-k="${k}" style="margin-bottom:8px;cursor:${locked?"default":"grab"}"><span class="badge b-info">${labels[k]}</span><span class="t">${esc(item.items[k])}</span></div>`).join("")}</div></div>`).join("");
+    if(locked)return;
+    $$(".ro-item",body).forEach(el=>{el.addEventListener("dragstart",e=>e.dataTransfer.setData("text/plain",el.dataset.k)); el.addEventListener("click",()=>move(+el.dataset.k,el.closest("[data-panel]").dataset.panel==="0"?1:0));});
+    $$("[data-panel]",body).forEach(el=>{el.addEventListener("dragover",e=>e.preventDefault()); el.addEventListener("drop",e=>{e.preventDefault();const raw=e.dataTransfer.getData("text/plain");if(raw==="")return;const row=e.target.closest(".ro-item");move(+raw,+el.dataset.panel,row?+row.dataset.k:null,row&&e.clientY>row.getBoundingClientRect().top+row.offsetHeight/2);});}); };
+  const move = (k,j,before=null,after=false)=>{if(!source.includes(k)&&!order.includes(k)||k===before)return;source=source.filter(v=>v!==k);order=order.filter(v=>v!==k);const arr=j?order:source;const p=arr.indexOf(before);arr.splice(p<0?arr.length:p+(after?1:0),0,k);draw();};
+  body.innerHTML = `<div id="roList" style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start"></div><button class="btn" type="button" id="chk" style="margin-block-start:10px">Submit answer</button>`; draw();
+  $("#chk").addEventListener("click",async()=>{if($("#chk").disabled)return;$("#chk").disabled=true;let pairs=0;for(let i=0;i<order.length-1;i++)if(order[i+1]===order[i]+1)pairs++;draw(true,order.map((k,pos)=>k===pos?"right":"wrong"));
+    const auto={parts:[],total:pairs,max:item.items.length-1,note:"1 point for each correctly ordered adjacent pair. Correct order: "+item.items.map((_,i)=>labels[i]).join(" → ")};
+    const att=await saveAttempt(t,{order:order.map(k=>labels[k])},auto);$("#qresult").innerHTML=scoreHTML(auto,retryBtn());bindRetry(t,att);});
 }
 /* ---------- Reading FIB (drag and drop) ---------- */
 function buildDND(t, item, body){
