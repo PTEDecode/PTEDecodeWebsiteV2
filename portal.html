@@ -1130,10 +1130,13 @@ function buildDND(t, item, body){
   const drawPool = () => { const used = Object.values(fill); $("#pool").innerHTML = pool.filter(w => !used.includes(w)).map(w => `<span class="chip ${selected===w?'sel':''}" draggable="true" data-w="${esc(w)}">${esc(w)}</span>`).join("");
     $$(".chip").forEach(c => { c.addEventListener("dragstart", e => e.dataTransfer.setData("text/plain", c.dataset.w)); c.addEventListener("click", () => { selected = selected === c.dataset.w ? null : c.dataset.w; drawPool(); }); }); };
   const place = (d, w) => { for (const k in fill) if (fill[k] === w) delete fill[k]; fill[d.dataset.d] = w; selected = null; drawDrops(); drawPool(); };
-  const drawDrops = () => $$(".drop").forEach(d => { const w = fill[d.dataset.d]; d.textContent = w || "\u00a0"; d.classList.toggle("filled", !!w); });
-  $$(".drop").forEach(d => { d.addEventListener("dragover", e => e.preventDefault()); d.addEventListener("drop", e => { e.preventDefault(); place(d, e.dataTransfer.getData("text/plain")); });
-    d.addEventListener("click", () => { if (d.dataset.locked) return; if (selected) place(d, selected); else if (fill[d.dataset.d]) { delete fill[d.dataset.d]; drawDrops(); drawPool(); } }); });
-  drawPool();
+ const drawDrops = () => $$(".drop").forEach(d => {const w = fill[d.dataset.d]; d.textContent = w || "\u00a0"; d.classList.toggle("filled", !!w); d.draggable = !!w && !d.dataset.locked; d.style.cursor = w && !d.dataset.locked ? "grab" : ""; });
+$$(".drop").forEach(d => { d.addEventListener("dragstart", e => {if (d.dataset.locked || !fill[d.dataset.d]) { e.preventDefault(); return; } e.dataTransfer.setData("text/plain", fill[d.dataset.d]); });
+d.addEventListener("dragover", e => {if (!d.dataset.locked) e.preventDefault(); });
+d.addEventListener("drop", e => { e.preventDefault(); if (d.dataset.locked) return; const w = e.dataTransfer.getData("text/plain"); if (pool.includes(w)) place(d, w); });
+d.addEventListener("click", () => {if (d.dataset.locked) return; if (selected) place(d, selected); else if (fill[d.dataset.d]) {delete fill[d.dataset.d]; drawDrops(); drawPool(); } }); });
+$("#pool").addEventListener("dragover", e => { e.preventDefault(); });
+$("#pool").addEventListener("drop", e => { e.preventDefault(); if ($$(".drop").some(d => d.dataset.locked)) return; const w = e.dataTransfer.getData("text/plain"); for (const k in fill) { if (fill[k] === w) delete fill[k]; } selected = null; drawDrops(); drawPool(); }); drawPool(); drawDrops();
   $("#chk").addEventListener("click", async () => { let got = 0; $$(".drop").forEach(d => { const ok = fill[d.dataset.d] === item.a[d.dataset.d]; if (ok) got++; d.classList.add(ok?"right":"wrong"); d.dataset.locked = "1"; });
     const auto = {parts:[], total:got, max:item.a.length, note:"1 point per correct gap. Answers: " + item.a.join(", ")};
     const att = await saveAttempt(t, {selections: item.a.map((_,i)=>fill[i]||"")}, auto); $("#chk").disabled = true; $("#pool").innerHTML = ""; $("#qresult").innerHTML = scoreHTML(auto, retryBtn()); bindRetry(t, att); });
