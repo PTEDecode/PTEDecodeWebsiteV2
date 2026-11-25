@@ -2619,7 +2619,7 @@ async function renderMockReport(app){
   const COL = {listening:"#2a9d8f", reading:"#e9c46a", speaking:"#5a67d8", writing:"#e76f51"};
   const bar = (label, v, col) => `<div class="sk"><span>${esc(label)}</span><b>${esc(v)}</b><div class="trk"><i style="inline-size:${clamp((Number(v) - 10) / 80 * 100, 0, 100)}%;background:${col}"></i><span class="ticks"><span>10</span><span>30</span><span>50</span><span>70</span><span>90</span></span></div></div>`;
   const comments = Object.entries(r.items || {}).map(([i, c]) => ({i:+i, c})).sort((x, y) => x.i - y.i);
-  app.innerHTML = `<div class="row no-print" style="margin-block-end:12px"><button class="btn ghost sm" type="button" data-nav="mock">← Mock Exam</button><span class="spacer"></span><button class="btn ghost sm" type="button" onclick="window.print()">🖨 Print</button></div>
+  app.innerHTML = `<div class="row no-print" style="margin-block-end:12px"><button class="btn ghost sm" type="button" data-nav="mock">← Mock Exam</button><span class="spacer"></span></div>
     <div class="rep" id="scoreReport"><div class="rep-head"><div class="rep-ov"><div><b id="repOverall">${esc(r.overall)}</b><small>OVERALL</small></div></div>
       <div><div style="font-size:12px;letter-spacing:.2em;color:var(--orange);font-weight:700">SCORE REPORT · MOCK TEST</div><h1 style="color:#fff;margin:4px 0">${esc(a.title)}</h1><div style="color:#dfe6f3">${esc(S.session.n)} · ${a.finished ? "taken " + esc(fmtDate(a.finished)) : ""}${a.reviewedBy ? " · reviewed by " + esc(a.reviewedBy) : ""}</div></div></div>
     <div class="card" style="border-radius:0 0 14px 14px"><h2>Communicative skills</h2>
