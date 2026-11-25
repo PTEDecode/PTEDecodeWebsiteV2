@@ -90,7 +90,7 @@
     if (!el || !el.closest) return false;
     return !!el.closest("input,textarea,select,[contenteditable=''],[contenteditable='true']");
   }
-  function block(e) { if (protectedNow() && !editable(e.target)) { e.preventDefault(); e.stopPropagation(); return false; } }
+  function block(e) {if (e.type === "dragstart" && e.target.closest('.chip[draggable="true"], .ro-item[draggable="true"]')) return; if (protectedNow() && !editable(e.target)) { e.preventDefault(); e.stopPropagation(); return false; } }
   function wipeClipboard() {
     try { if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(" ").catch(function () {}); } catch (e) {}
   }
