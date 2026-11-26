@@ -977,12 +977,12 @@ function scoreHTML(auto, extra=""){
 }
 const retryBtn = () => `<div class="row" style="margin-block-start:12px">${S.preview ? `<button class="btn" type="button" disabled title="Preview mode">📤 Submit for teacher feedback (disabled in preview)</button>` : `<button class="btn" type="button" id="sendT">📤 Submit for teacher feedback</button>`}<button class="btn ghost sm" type="button" id="retry">↻ Try again</button><span class="small muted" id="sendInfo"></span></div>`;
 function bindRetry(t, att){ const b = $("#retry"); if (b) b.addEventListener("click", () => go("task", t.id, S.idx));
-  const sb = $("#sendT"); if (!sb || !att) return;
+  const sb = $("#sendT"); if (sb && !["speak","write"].includes(t.kind)) { sb.remove(); return; } if (!sb || !att) return;
   sb.addEventListener("click", async () => { sb.disabled = true; sb.textContent = "Sending…";
     try { await submitAttempt(att); sb.textContent = "✓ Sent to your teacher"; $("#sendInfo").textContent = "You'll see the feedback under My work & feedback."; }
     catch(e){ sb.disabled = false; sb.textContent = "📤 Submit for teacher feedback"; toast(e.message, 5000); } }); }
 async function submitAttempt(a){
-  if (a.submissionId) return a;
+  if (a.submissionId) return a; if (!["speak","write"].includes(TASK[a.type]?.kind)) throw new Error("Teacher feedback is only available for speaking and writing questions.");
   const t = TASK[a.type], audio = a.response && a.response.audio instanceof Blob ? await blobToDataURL(a.response.audio) : null;
   if (audio && audio.length > 8e6) throw new Error("This recording is too large to send. Please try the question again.");
   const r = await api("submit", {code:S.session.code, attempt:{localId:a.id, type:a.type, taskName:t.name, section:(SECTIONS.find(x=>x.id===t.sec)||{}).name, itemIdx:a.itemIdx,
