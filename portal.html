@@ -1220,8 +1220,9 @@ async function renderWork(app){
   localStorage.setItem("pte_fb_seen_" + S.session.id, new Date().toISOString());
   const box = $("#sentBox"); if (!box) return;
   const rev = items.filter(x => x.status === "Reviewed").length;
-  box.innerHTML = `<div class="row"><h2 style="margin:0">Submitted to your teacher (${items.length})</h2><span class="spacer"></span><span class="badge b-ok">${rev} reviewed</span><span class="badge b-warn">${items.length-rev} waiting</span></div>
-    ${items.length ? items.map(x => { const la = byLocal[x.localId]; return `<div class="review-card"><div class="row"><b>${esc(x.taskName)}</b><span class="small muted">${esc(qLabel(x.type, x.itemIdx))} · submitted ${esc(fmtDate(x.submittedAt))}</span><span class="spacer"></span>${x.status==="Reviewed"?'<span class="badge b-ok">Reviewed</span>':'<span class="badge b-warn">Waiting for feedback</span>'}</div>
+const dismissed = items.filter(x => x.status === "Dismissed").length;
+  box.innerHTML = `<div class="row"><h2 style="margin:0">Submitted to your teacher (${items.length})</h2><span class="spacer"></span><span class="badge b-ok">${rev} reviewed</span><span class="badge b-warn">${items.length-rev-dismissed} waiting</span></div>
+    ${items.length ? items.map(x => { const la = byLocal[x.localId]; return `<div class="review-card"><div class="row"><b>${esc(x.taskName)}</b><span class="small muted">${esc(qLabel(x.type, x.itemIdx))} · submitted ${esc(fmtDate(x.submittedAt))}</span><span class="spacer"></span>${x.status==="Reviewed"?'<span class="badge b-ok">Reviewed</span>':x.status==="Dismissed"?'<span class="badge">Closed - No feedback required</span>':'<span class="badge b-warn">Waiting for feedback</span>'}</div>
       ${x.hasAudio ? `<div style="margin-block:6px">${la && la.response && la.response.audio instanceof Blob ? `<audio controls data-local="${esc(la.id)}"></audio>` : `<button class="btn ghost sm" type="button" data-aud="${esc(x.id)}">▶ Load my recording</button>`}</div>` : ""}
       <div class="resp">${esc(respText(x.response)||"—")}</div>
       <div class="small" style="margin-block-start:6px">Auto-score: <b>${x.autoMax?esc(x.autoTotal)+" / "+esc(x.autoMax):"–"}</b></div>
@@ -1815,6 +1816,7 @@ function reviewCard(x, recs){
     <div class="vrHost" style="margin-block-start:8px"></div>
     <div class="fbVoice small" style="margin-block-start:6px">${x.hasFeedbackAudio?`Your voice message: <button class="btn ghost sm fvPlay" type="button">▶ Play</button> <button class="btn ghost sm fvDel" type="button">Remove</button>`:""}</div>
     <div class="row" style="margin-block-start:8px"><button class="btn sm rSave" type="button">${reviewed?"Update feedback":"Send feedback"}</button>
+${reviewed?"":'<button class="btn ghost sm rDismiss" type="button">Dismiss</button>'}
       <span class="waSlot">${reviewed && x.studentPhone ? waBtn("data-wan", x.id, "Tell student on WhatsApp") : ""}</span><span class="small muted rInfo">${reviewed?"Sent "+esc(fmtDate(x.reviewedAt))+(x.reviewedBy?" · Reviewed by "+esc(x.reviewedBy):""):""}</span></div>`;
   const ab = card.querySelector(".aBtn"); if (ab) ab.addEventListener("click", async () => { ab.disabled = true; ab.textContent = "Loading…";
     try { const r = await tapi("t_audio", {id:x.id}); const au = document.createElement("audio"); au.controls = true; au.src = r.audio; ab.replaceWith(au); au.play().catch(()=>{}); } catch(e){ toast(e.message); ab.disabled = false; ab.textContent = "▶ Play recording"; } });
@@ -1824,6 +1826,8 @@ function reviewCard(x, recs){
     if (dl) dl.addEventListener("click", () => { removeVoice = true; card.querySelector(".fbVoice").innerHTML = '<span class="muted">The voice message will be removed when you click Update feedback.</span>'; }); };
   bindVoice();
   const bindWa = () => { const w = card.querySelector("[data-wan]"); if (w) w.addEventListener("click", () => waOpen(x.studentPhone, feedbackWaText(x))); }; bindWa();
+  const dismissBtn = card.querySelector(".rDismiss");
+if (dismissBtn) {dismissBtn.addEventListener("click", async () => { if (!confirm("Dismiss this submission without feedback?")) return; dismissBtn.disabled = true; dismissBtn.textContent = "Dismissing..."; try {await tapi("t_dismiss", {id: x.id}); toast("Submission dismissed."); renderReview(p); } catch (err) {toast(err.message, 5000); dismissBtn.disabled = false; dismissBtn.textContent = "Dismiss"; }}); }
   card.querySelector(".rSave").addEventListener("click", async e => { const b = e.target; const was = x.status === "Reviewed"; b.disabled = true; b.textContent = voice ? "Uploading voice…" : "Sending…";
     try { const audio = voice ? await blobToDataURL(voice) : null;
       const r = await tapi("t_feedback", {id:x.id, score:card.querySelector(".rScore").value.trim(), comment:card.querySelector(".rCom").value.trim(), audio, removeAudio: removeVoice && !voice});
