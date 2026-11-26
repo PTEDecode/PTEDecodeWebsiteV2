@@ -1203,7 +1203,7 @@ async function renderWork(app){
   $("#refresh").addEventListener("click", () => render());
   const local = (await DB.all("attempts")).filter(a => a.student.id === S.session.id);
   const byLocal = Object.fromEntries(local.map(a => [a.id, a]));
-  const drawUnsent = () => { const un = local.filter(a => !a.submissionId).sort((a,b) => b.createdAt.localeCompare(a.createdAt)); const box = $("#unsent"); if (!box) return;
+  const drawUnsent = () => { const un = local.filter(a => !a.submissionId && ["speak","write"].includes(TASK[a.type]?.kind)).sort((a,b) => b.createdAt.localeCompare(a.createdAt)); const box = $("#unsent"); if (!box) return;
     if (!un.length) { box.innerHTML = ""; return; }
     box.innerHTML = `<div class="card" style="margin-block-end:18px"><div class="row"><h2 style="margin:0">Not yet submitted (${un.length})</h2><span class="spacer"></span><button class="btn sm" type="button" id="sendAllU">📤 Submit all</button></div>
       <p class="small muted">These practice answers are saved on this device only. Submit the ones you'd like your teacher to review.</p>
